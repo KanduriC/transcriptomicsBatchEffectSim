@@ -1,0 +1,29 @@
+Package: transcriptomicsBatchEffectSim
+Title: Simulation of batch effects in RNAseq-based transcriptomics data
+Version: 0.0.0.9000
+Authors@R: 
+    person("Chakravarthi", "Kanduri", , "chakra.kanduri@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: AGPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+biocViews:
+Imports: 
+    DESeq2,
+    dplyr,
+    ggplot2,
+    sva,
+    tidyr,
+    reshape2,
+    yaml,
+    glmnet,
+    pROC,
+    caret,
+    matrixStats
+Depends: 
+    R (>= 2.10)
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
