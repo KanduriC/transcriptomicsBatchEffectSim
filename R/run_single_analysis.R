@@ -42,7 +42,8 @@ single_analysis_with_batch <- function(sim_params){
   batch_group_corr <- round(length(sim_params$batch1_group1_indices)/length(sim_params$batch1_indices) * 100)
   logistic_reg_metrics <- logistic_reg_metrics %>% dplyr::mutate(group_diff = sim_params$avg_log2FC_between_groups, batch_diff = sim_params$batch_difference_threshold, batch_group_corr = batch_group_corr, seed=sim_params$seed)
   deseq_metrics <- dplyr::bind_rows(results_list$metrics, uncorrected_deseq_res) %>% dplyr::mutate(group_diff = sim_params$avg_log2FC_between_groups, batch_diff = sim_params$batch_difference_threshold, batch_group_corr = batch_group_corr, seed=sim_params$seed)
-  results <- list(deseq_results = deseq_metrics, logistic_reg_metrics = logistic_reg_metrics, logistic_coefs = res$coef_lists,simulated_data_objs=data_objs_batch, sim_params = sim_params)
+  log_coef_overlap_metrics <- measure_coef_overlap_true_signal(coefs_list = res$coef_lists, data_objs=data_objs_batch)
+  results <- list(deseq_results = deseq_metrics, logistic_reg_metrics = logistic_reg_metrics, logistic_coefs = res$coef_lists, logistic_predictions = res$prediction_lists, log_coef_overlap_metrics = log_coef_overlap_metrics, simulated_data_objs=data_objs_batch, sim_params = sim_params)
   return(results)
 }
 
@@ -65,17 +66,31 @@ single_analysis_with_batch <- function(sim_params){
    colnames(logistic_reg_metrics) <- c("metric", "type", "values")
    logistic_reg_metrics <- logistic_reg_metrics %>% dplyr::mutate(group_diff = sim_params$avg_log2FC_between_groups, seed=sim_params$seed)
    results_list$metrics <- results_list$metrics %>% dplyr::mutate(group_diff = sim_params$avg_log2FC_between_groups, seed=sim_params$seed, type = "no batch effect")
-   results <- list(deseq_results = results_list$metrics, logistic_reg_metrics = logistic_reg_metrics, logistic_coefs = res$coef_lists, simulated_data_objs=data_objs, sim_params = sim_params)
+   log_coef_overlap_metrics <- measure_coef_overlap_true_signal(coefs_list = res$coef_lists, data_objs=data_objs)
+   results <- list(deseq_results = results_list$metrics, logistic_reg_metrics = logistic_reg_metrics, logistic_coefs = res$coef_lists, logistic_predictions = res$prediction_lists, log_coef_overlap_metrics = log_coef_overlap_metrics, simulated_data_objs=data_objs, sim_params = sim_params)
    return(results)
  }
 
  extract_metric_coef_lists <- function(list_of_logistic_res_lists){
    metric_lists <- lapply(list_of_logistic_res_lists, function(l) {
-     l[!names(l) %in% "logistic_coef"]
+     l[names(l) %in% "logistic_metrics"]
    })
    coef_lists <- lapply(list_of_logistic_res_lists, function(l) {
      l[names(l) %in% "logistic_coef"]
    })
-   res <- list(metric_lists = metric_lists, coef_lists = coef_lists)
+   prediction_lists <- lapply(list_of_logistic_res_lists, function(l) {
+     l[names(l) %in% "logistic_predictions"]
+   })
+   res <- list(metric_lists = metric_lists, coef_lists = coef_lists, prediction_lists=prediction_lists)
    return(res)
+ }
+
+ measure_coef_overlap_true_signal <- function(coefs_list, data_objs){
+   res_obj <- lapply(coefs_list, function(x){x$logistic_coef %>% dplyr::filter(.[[1]]!=0)})
+   true_signal <- rownames(data_objs$group_means_filt)[data_objs$diff_exp_indices]
+   valid_features <- rownames(data_objs$group_means_filt)
+   overlap_df <- lapply(res_obj, function(x){c(n_overlap=length(intersect(true_signal, rownames(x))),n_nonzero=length(rownames(x))-1, coef_sum=sum(abs(x[intersect(rownames(x),valid_features),1])),n_true_signal=length(true_signal))})
+   overlap_df2 <- dplyr::bind_rows(overlap_df, .id= "id")
+   overlap_df2 <- overlap_df2 %>% dplyr::mutate(prop_true_coef=n_overlap/n_nonzero)
+   return(overlap_df2)
  }

@@ -20,6 +20,27 @@ sim_params <-
     batch_effects_exist = TRUE
   )
 
+sim_params_diff_params <-
+  list(
+    approx_n_genes = 5000,
+    n_examples = 60,
+    batch1_indices = 1:30,
+    batch2_indices = 31:60,
+    batch1_group1_indices = 1:20,
+    batch1_group2_indices = 21:30,
+    batch2_group1_indices = 31:40,
+    batch2_group2_indices = 41:60,
+    group1_indices = c(1:20, 31:40),
+    group2_indices = c(21:30, 41:60),
+    batch_difference_threshold = 2,
+    n_true_diff_genes = 500,
+    n_true_upreg_genes = 250,
+    max_baseline_log2FC_between_groups = 0.25,
+    avg_log2FC_between_groups = 1,
+    train_split_prop = 0.70,
+    batch_effects_exist = TRUE
+  )
+
 sim_params_without_batch <-
   list(
     approx_n_genes = 5000,
@@ -36,6 +57,18 @@ sim_params_without_batch <-
 
 res_1 <- rep_simulations(sim_params_list = sim_params, n_times=2)
 res_2 <- rep_simulations(sim_params_list = sim_params_without_batch, n_times=2)
+
+res_2 <- rep_simulations(sim_params_list = sim_params_diff_params, n_times=2)
+
+params_grid <- expand.grid(c(1,2), c(0.5,1))
+multi_res <- multi_param_rep_sim(params_grid = params_grid, sim_params, n_times = 3)
+
+extract_deseq_results_multi <- function(multi_res_list){
+  res_obj <- lapply(multi_res_list, function(x){x$deseq_results})
+  res_obj <- res_obj %>% dplyr::bind_rows() %>% dplyr::group_by(across(c(-values, -seed))) %>% dplyr::filter(grepl('sensitivity|specificity|accuracy', metric))
+  return(res_obj)
+}
+
 
 deseq_results <- join_results(res_1, res_2, "deseq_results")
 logistic_results <- join_results(res_1, res_2, "logistic_results")

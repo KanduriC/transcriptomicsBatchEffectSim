@@ -4,7 +4,7 @@
 \alias{box_plot}
 \title{An ad hoc box plot function to visualize results obtained through \code{rep_simulations} and joined through \code{join_results}}
 \usage{
-box_plot(results_table, title)
+box_plot(results_table, title, y_label)
 }
 \arguments{
 \item{results_table}{a dataframe containing results}

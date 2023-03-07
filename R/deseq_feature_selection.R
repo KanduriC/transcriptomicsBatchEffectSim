@@ -39,10 +39,12 @@ deseq_feature_selection <- function(simulated_datamat, coldata, group_means_filt
     )) * 100
   true_neg <- nrow(resLFC) - sim_params$n_true_diff_genes - n_false_pos_without_batch
   accuracy <- ((n_true_sig_without_batch + true_neg)/nrow(resLFC))*100
+  precision <- (n_true_sig_without_batch/n_sig_without_batch) * 100
   sensitivity_without_batch <-
     (n_true_sig_without_batch / sim_params$n_true_diff_genes) * 100
-  metric <- c("n_significant","n_true_significant","sensitivity", "specificity", "accuracy")
-  values <- c(n_sig_without_batch, n_true_sig_without_batch, sensitivity_without_batch, specificity_without_batch, accuracy)
+  f1_score <- 2 * (precision * sensitivity_without_batch) / (precision + sensitivity_without_batch)
+  metric <- c("n_significant","n_true_significant","sensitivity", "specificity", "accuracy", "f1_score")
+  values <- c(n_sig_without_batch, n_true_sig_without_batch, sensitivity_without_batch, specificity_without_batch, accuracy, f1_score)
   metrics <- data.frame(metric, values)
   results_list$metrics <- metrics
   results_list$signif_feature_mat <- simulated_datamat[rownames(res.sig_without_batch),]

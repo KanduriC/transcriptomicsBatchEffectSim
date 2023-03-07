@@ -18,7 +18,8 @@ rep_simulations <- function(sim_params_list, n_times){
   }
   deseq_res <- extract_deseq_results(results_list)
   logistic_res <- extract_logistic_results(results_list)
-  return(list(deseq_results=deseq_res, logistic_results=logistic_res, detailed_results=results_list))
+  log_coef_overlap_stats <- extract_logistic_coef_overlap_metrics(results_list)
+  return(list(deseq_results=deseq_res, logistic_results=logistic_res, log_coef_overlap_stats = log_coef_overlap_stats, detailed_results=results_list))
 }
 
 extract_deseq_results <- function(rep_sim_res_list){
@@ -29,6 +30,23 @@ extract_deseq_results <- function(rep_sim_res_list){
 
 extract_logistic_results <- function(rep_sim_res_list){
   res_obj <- lapply(rep_sim_res_list, function(x){x$logistic_reg_metrics})
-  res_obj <- res_obj %>% dplyr::bind_rows() %>% dplyr::group_by(across(c(-values, -seed))) %>% dplyr::filter(grepl('balanced_accuracy', metric))
+  # res_obj <- res_obj %>% dplyr::bind_rows() %>% dplyr::group_by(across(c(-values, -seed))) %>% dplyr::filter(grepl('balanced_accuracy', metric))
+  res_obj <- res_obj %>% dplyr::bind_rows()
   return(res_obj)
+}
+
+extract_logistic_coef_overlap_metrics <- function(rep_sim_res_list){
+  res_obj <- lapply(rep_sim_res_list, function(x){x$log_coef_overlap_metrics})
+  res_obj <- res_obj %>% dplyr::bind_rows()
+  return(res_obj)
+}
+
+multi_param_rep_sim <- function(params_grid, sim_params, n_times) {
+  grid_res <- list()
+  for(each_row in 1:nrow(params_grid)){
+    sim_params$batch_difference_threshold <- params_grid$Var1[each_row]
+    sim_params$avg_log2FC_between_groups <- params_grid$Var2[each_row]
+    grid_res[[each_row]] <- rep_simulations(sim_params_list = sim_params, n_times=n_times)
+  }
+  return(grid_res)
 }
