@@ -35,10 +35,9 @@ sim_params_with_batch <-
     batch2_group2_indices = 37:60, # the indices of biological group-2 in batch-2
     group1_indices = c(1:24, 31:36), # the indices of biological group-1
     group2_indices = c(25:30, 37:60), # the indices of biological group-2
-    batch_difference_threshold = 1, # the log2 fold-difference between batches +/- this parameter. Here, the gene expression between batches will vary between 0 and 2 (1-1, 1+1)
+    batch_difference_threshold = 1, # the average log2 fold-difference between batches +/- this parameter.
     n_true_diff_genes = 500, # number of true differentially expressed genes
     n_true_upreg_genes = 250, # number of true up-regulated genes
-    max_baseline_log2FC_between_groups = 0.25, # how much the gene expression between groups will vary before introducing any biological effects
     avg_log2FC_between_groups = 1, average log2 fold-change of biological differences
     train_split_prop = 0.70, # when training a predictive model on the simulated data, what proportion of data will be included for training
     batch_effects_exist = TRUE # whether batch effects to exist in the data
@@ -52,7 +51,6 @@ sim_params_without_batch <-
     group2_indices = 31:60,
     n_true_diff_genes = 500,
     n_true_upreg_genes = 250,
-    max_baseline_log2FC_between_groups = 0.25,
     avg_log2FC_between_groups = 1,
     train_split_prop = 0.70,
     batch_effects_exist = FALSE
@@ -68,7 +66,7 @@ sim_params_without_batch <-
 - Induces biological group differences to the desired extent
 - corrects for batch effects using Combat-Seq implemented in sva package
 - performs differential expression testing using DESeq2 before and after batch effect correction
-- trains a lasso logistic regression model (where the regularization parameter is chosen through cross-validation) on a training split (as specified) and predicts on test data. This is performed both on data that is corrected and not corrected for batch effects and tested on data that contains batch effects
+- trains a lasso logistic regression model (where the regularization parameter is chosen through cross-validation) on a training split (as specified) and predicts on test data that is not used for model fitting. This is performed both on data that is corrected and not corrected for batch effects and tested on data that contains batch effects. 
 
 If the parameter specifications specify a simulated dataset without batch effects, the same steps above are performed except for introducing batch effects or their correction.
 
