@@ -87,10 +87,10 @@ filter_genes_based_on_sim_params_with_batches <- function(group_means, sim_param
     )
 
   group_means_filt$b1_dispersion[which(!is.finite(group_means_filt$b1_dispersion))] <-
-    max(group_means_filt$b1_dispersion, na.rm = T)
+    mean(group_means_filt$b1_dispersion, na.rm = T)
 
   group_means_filt$b2_dispersion[which(!is.finite(group_means_filt$b2_dispersion))] <-
-    max(group_means_filt$b2_dispersion, na.rm = T)
+    mean(group_means_filt$b2_dispersion, na.rm = T)
   return(group_means_filt)
 }
 
@@ -110,10 +110,10 @@ filter_genes_based_on_sim_params_without_batches <- function(group_means, sim_pa
     )
 
   group_means_filt$g1_dispersion[which(!is.finite(group_means_filt$g1_dispersion))] <-
-    max(group_means_filt$g1_dispersion, na.rm = T)
+    mean(group_means_filt$g1_dispersion, na.rm = T)
 
   group_means_filt$g2_dispersion[which(!is.finite(group_means_filt$g2_dispersion))] <-
-    max(group_means_filt$g2_dispersion, na.rm = T)
+    mean(group_means_filt$g2_dispersion, na.rm = T)
   return(group_means_filt)
 }
 
@@ -131,4 +131,30 @@ filter_genes_based_on_sim_params <- function(simulated_datamat, sim_params,
     group_means_filt <- group_means_filt[gene_indices, ]
   }
   return(group_means_filt)
+}
+
+get_descriptive_stats <- function(simulated_datamat, sim_params){
+  group_stats <- compute_groupwise_stats(simulated_datamat=simulated_datamat, sim_params)
+  mean_disp_loess <- fit_loess(mean_and_disperison=mean_and_disperison)
+
+  group_stats <- group_stats %>%
+    dplyr::mutate(
+      b1_dispersion = predict(mean_disp_loess, 2 ^ b1_mean),
+      b2_dispersion = predict(mean_disp_loess, 2 ^ b2_mean),
+      g1_dispersion = predict(mean_disp_loess, 2 ^ g1_mean),
+      g2_dispersion = predict(mean_disp_loess, 2 ^ g2_mean)
+    )
+
+  group_stats$b1_dispersion[which(!is.finite(group_stats$b1_dispersion))] <-
+    mean(group_stats$b1_dispersion, na.rm = T)
+
+  group_stats$b2_dispersion[which(!is.finite(group_stats$b2_dispersion))] <-
+    mean(group_stats$b2_dispersion, na.rm = T)
+
+  group_stats$g1_dispersion[which(!is.finite(group_stats$g1_dispersion))] <-
+    mean(group_stats$g1_dispersion, na.rm = T)
+
+  group_stats$g2_dispersion[which(!is.finite(group_stats$g2_dispersion))] <-
+    mean(group_stats$g2_dispersion, na.rm = T)
+  return(group_stats)
 }

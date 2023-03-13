@@ -1,10 +1,8 @@
 simulate_exprsmat_with_group_differences <- function(sim_params){
   baseline_exprs_mat <- generate_baseline_exprs_matrix(n_genes=sim_params$approx_n_genes,
                                                        n_examples=sim_params$n_examples)
-  group_means_filt <- filter_genes_based_on_sim_params(simulated_datamat = baseline_exprs_mat,
-                                                       sim_params=sim_params,
-                                                       batch_effects_exist = FALSE)
-
+  group_means_filt <- get_descriptive_stats(simulated_datamat = baseline_exprs_mat,
+                                            sim_params=sim_params)
   sim_results <- induce_group_differences(simulated_datamat=baseline_exprs_mat,
                                           group_means_filt=group_means_filt,
                                           sim_params=sim_params)

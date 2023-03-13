@@ -38,7 +38,7 @@ generate_exprs_matrix <- function(mean_and_dispersion_list, n_examples) {
 
 generate_baseline_exprs_matrix <- function(n_genes, n_examples){
   mean_and_dispersion_list <- upsample_gene_parameters(mean_and_disperison = mean_and_disperison,
-                                                       approx_n_genes = n_genes*12)
+                                                       approx_n_genes = n_genes)
   baseline_mat <- generate_exprs_matrix(mean_and_dispersion_list=mean_and_dispersion_list, n_examples=n_examples)
   return(baseline_mat)
 }

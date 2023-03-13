@@ -19,19 +19,24 @@ sim_params_without_batch <-
 
 baseline_mat <- generate_baseline_exprs_matrix(n_genes = 500, n_examples = 40)
 
-group_means_filt <- filter_genes_based_on_sim_params(simulated_datamat = baseline_mat,
-                                                     sim_params_without_batch,
-                                                     batch_effects_exist = FALSE)
+group_means_filt <- get_descriptive_stats(simulated_datamat = baseline_mat,
+                                          sim_params=sim_params_without_batch)
 
 sim_results <- induce_group_differences(simulated_datamat=baseline_mat,
                                         group_means_filt=group_means_filt,
                                         sim_params=sim_params_without_batch)
+
 group_stats <- compute_groupwise_stats(simulated_datamat=sim_results$simulated_datamat_filt,
                                        sim_params=sim_params_without_batch)
-n_genes_not_diff <- length(which(abs(group_stats$group_fc)<=sim_params_without_batch$max_baseline_log2FC_between_groups))
-
+pre_fc <- group_means_filt %>% dplyr::select(group_fc) %>% dplyr::mutate(Gene=rownames(group_means_filt))
+post_fc <- group_stats %>% dplyr::select(group_fc) %>% dplyr::mutate(Gene=rownames(group_stats))
+fc <- dplyr::left_join(pre_fc, post_fc, by="Gene")
+n_genes_not_diff <- length(which(fc$group_fc.x==fc$group_fc.y))
 n_genes_diff <- nrow(sim_results$simulated_datamat_filt)-n_genes_not_diff
+
+true_diff_genes <- fc[sim_results$diff_exp_indices,]
 
 test_that("inducing group differences work", {
   expect_equal(n_genes_diff, sim_params_without_batch$n_true_diff_genes)
+  expect_equal(round(mean(abs(true_diff_genes$group_fc.y))), sim_params_without_batch$avg_log2FC_between_groups)
 })

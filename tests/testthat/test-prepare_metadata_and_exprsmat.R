@@ -36,9 +36,8 @@ sim_params_with_batch <-
 
 baseline_mat <- generate_baseline_exprs_matrix(n_genes = 500, n_examples = 40)
 
-group_means_filt <- filter_genes_based_on_sim_params(simulated_datamat = baseline_mat,
-                                                     sim_params_without_batch,
-                                                     batch_effects_exist = FALSE)
+group_means_filt <- get_descriptive_stats(simulated_datamat = baseline_mat,
+                                          sim_params=sim_params_without_batch)
 
 sim_results <- induce_group_differences(simulated_datamat = baseline_mat,
                                         group_means_filt = group_means_filt,
